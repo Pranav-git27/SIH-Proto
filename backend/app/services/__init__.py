@@ -1,6 +1,13 @@
-"""Service layer package.
+"""Service layer package for graph analysis, persistence, dossier generation, and evidence."""
 
-Reserved for future orchestration between API routes,
-GraphEngine, temporal filtering, evidence trails,
-and PDF dossier generation. No services in foundation stage.
-"""
+from app.services.persistence_service import (
+    ensure_db_seeded,
+    hydrate_graph_from_db,
+    save_payload_to_db,
+)
+
+__all__ = [
+    "ensure_db_seeded",
+    "hydrate_graph_from_db",
+    "save_payload_to_db",
+]

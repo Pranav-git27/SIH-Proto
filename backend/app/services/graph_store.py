@@ -6,33 +6,18 @@ evidence, dossier, and graph views always see the same data.
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 from app.core.graph_engine import GraphEngine
-from app.models.graph_models import GraphPayload
+from app.db.session import Base, SessionLocal, engine as db_engine
+from app.services.persistence_service import ensure_db_seeded
 
 engine = GraphEngine()
 
 
 def ensure_sample_loaded() -> bool:
-    """Load initial dataset if the engine is empty. Returns True if loaded."""
-    if engine.get_graph().number_of_nodes():
-        return False
-    candidates = [
-        Path(__file__).resolve().parents[3] / "data" / "clean_graph.json",
-        Path(__file__).resolve().parents[3] / "data" / "sample_graph.json",
-        Path(__file__).resolve().parents[2] / "data" / "clean_graph.json",
-        Path(__file__).resolve().parents[2] / "data" / "sample_graph.json",
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            payload = GraphPayload.model_validate(
-                json.loads(candidate.read_text(encoding="utf-8"))
-            )
-            engine.load_graph(payload)
-            return True
-    return False
+    """Ensure database tables exist and initial dataset is loaded/hydrated."""
+    Base.metadata.create_all(bind=db_engine)
+    with SessionLocal() as db:
+        return ensure_db_seeded(engine, db)
 
 
 def get_engine() -> GraphEngine:
@@ -40,4 +25,5 @@ def get_engine() -> GraphEngine:
     return engine
 
 
+# Initial setup on module load
 ensure_sample_loaded()
